@@ -109,9 +109,11 @@ class TraceCall extends Nette\Object
 	/**
 	 * @param \XdebugTrace\TraceCall $parent
 	 */
-	public function setParent(TraceCall $parent)
+	public function setParent(TraceCall $parent = NULL)
 	{
-		$this->parent = $parent;
+		if ($this->parent = $parent) {
+			$parent->addCall($this);
+		}
 	}
 
 

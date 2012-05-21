@@ -48,12 +48,29 @@ class StackTrace extends Nette\Object implements \IteratorAggregate
 		if ($opener = $this->get($call->id)) {
 			$opener->memoryOut = $call->memoryOut;
 			$opener->timeOut = $call->timeOut;
+			$call = $opener;
 
 		} else {
 			$this->registry[$call->id] = $call;
 		}
 
-		// todo: hierarchy!
+		if ($this->last && !$call->getParent()) {
+			if ($this->last->level < $call->level) {
+				$call->setParent($this->last);
+
+			} elseif ($this->last->level > $call->level) {
+				if ($parent = $this->last->getParent()) {
+					$call->setParent($parent->getParent());
+				}
+
+			} else {
+				$call->setParent($this->last->getParent());
+			}
+		}
+
+		if (!$call->getParent() && !$opener) {
+			$this->calls[] = $call;
+		}
 
 		$this->last = $call;
 	}
