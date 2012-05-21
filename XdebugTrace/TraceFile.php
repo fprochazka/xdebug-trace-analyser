@@ -44,7 +44,7 @@ class TraceFile extends Nette\Object
 	{
 		@set_time_limit(0); // intentionally @
 
-		$size = filesize($this->traceFile);
+		$filesize = filesize($this->traceFile);
 		if (!$this->stream = fopen($this->traceFile, 'r')) {
 			throw new Nette\IOException("Can't open '$this->traceFile'");
 		}
@@ -55,36 +55,41 @@ class TraceFile extends Nette\Object
 			throw new \Nette\InvalidArgumentException("This file is not an Xdebug trace file made with format option '1'.");
 		}
 
-		$progress = new \progressbar();
-		$completed = 0;
+		$progress = new \progressbar(100, 'Parsing file', function () {
+			return '(using ' .number_format(memory_get_usage() / 1000000, 2, '.', ' ') . 'MB)';
+		});
+
+		$progress->update(0);
+		$read = $linesCounter = 0;
 
 		$trace = new StackTrace();
 		while (!feof($this->stream)) {
 			$line = fgets($this->stream);
-			$completed += strlen($line);
+			$read += strlen($line);
+			$linesCounter += 1;
 
 			if ($this->skipLine($line)) {
 				continue;
 			}
 
-			$line = Strings::split($line, '~\t~');
-			if (count($line) < 5) {
-				dump(array('skipping' => $line));
-				continue;
-			}
+			$line = array_map('trim', Strings::split($line, '~\t~'));
 
 			list($level, $id, $direction, $time, $memory) = $line;
 			$call = new TraceCall($id, $level, $time, $memory, (int)$direction);
 
-			if ((int)$direction === TraceCall::IN) {
-				dump(array(count($line) => $line));
+			if ((int)$direction === TraceCall::IN && count($line) === 10) {
 				list(,,,,, $call->function, $call->internalFunction, $call->includedFile, $call->file, $call->line) = $line;
 			}
 
 			$trace->insert($call);
 
-
+			if ($linesCounter % 1000 === 0) {
+				$progress->update(($read/$filesize) * 100);
+			}
 		}
+
+		$progress->update(100);
+		echo "\n";
 
 		fclose($this->stream);
 		return $trace;
@@ -98,7 +103,8 @@ class TraceFile extends Nette\Object
 	 */
 	private function skipLine($line)
 	{
-		return preg_match('~^Version: (.*)~', $line)
+		return trim($line) == ""
+			|| preg_match('~^Version: (.*)~', $line)
 			|| preg_match('~^File format: (.*)~', $line)
 			|| preg_match('~^TRACE.*~', $line); // todo: just ignore for now..
 	}
