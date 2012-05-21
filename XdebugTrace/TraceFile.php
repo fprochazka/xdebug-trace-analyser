@@ -42,8 +42,6 @@ class TraceFile extends Nette\Object
 	 */
 	public function createStackTrace()
 	{
-		@set_time_limit(0); // intentionally @
-
 		$filesize = filesize($this->traceFile);
 		if (!$this->stream = fopen($this->traceFile, 'r')) {
 			throw new Nette\IOException("Can't open '$this->traceFile'");
