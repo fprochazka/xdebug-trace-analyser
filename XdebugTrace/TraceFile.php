@@ -77,6 +77,14 @@ class TraceFile extends Nette\Object
 
 			if ((int)$direction === TraceCall::IN && count($line) === 10) {
 				list(,,,,, $call->function, $call->internalFunction, $call->includedFile, $call->file, $call->line) = $line;
+				$call->internalFunction = ($call->internalFunction === "0");
+
+				if (strcmp(substr($call->file, -13), "eval()'d code") === 0) {
+					preg_match('/(.*)\(([0-9]+)\) : eval\(\)\'d code$/', $call->file, $match);
+					$call->evalInfo = "- eval()'d code ($call->line)";
+					$call->file = $match[1];
+					$call->line = $match[2];
+				}
 			}
 
 			$trace->insert($call);

@@ -71,6 +71,11 @@ class TraceCall extends Nette\Object implements \IteratorAggregate
 	public $line;
 
 	/**
+	 * @var string
+	 */
+	public $evalInfo;
+
+	/**
 	 * @var TraceCall
 	 */
 	private $parent;
@@ -79,6 +84,11 @@ class TraceCall extends Nette\Object implements \IteratorAggregate
 	 * @var TraceCall[]
 	 */
 	private $children = array();
+
+	/**
+	 * @var StackTrace
+	 */
+	private $stack;
 
 
 
@@ -91,17 +101,81 @@ class TraceCall extends Nette\Object implements \IteratorAggregate
 	 */
 	public function __construct($id, $level, $time, $memory, $direction = self::IN)
 	{
-		$this->id = $id;
-		$this->level = $level;
+		$this->id = (int)$id;
+		$this->level = (int)$level;
 
 		if ($direction === self::IN) {
-			$this->timeIn = $time;
-			$this->memoryIn = $memory;
+			$this->timeIn = (float)$time;
+			$this->memoryIn = (float)$memory;
 
 		} else {
-			$this->timeOut = $time;
-			$this->memoryOut = $memory;
+			$this->timeOut = (float)$time;
+			$this->memoryOut = (float)$memory;
 		}
+	}
+
+
+
+	/**
+	 * @return int
+	 */
+	public function getRelativeLevel()
+	{
+		$lowest = $this->stack->getLowestLevel();
+		return $this->level - $lowest;
+	}
+
+
+
+	/**
+	 * @return float
+	 */
+	public function getInclusiveTime()
+	{
+		return ($this->timeOut && $this->timeIn)
+			? $this->timeOut - $this->timeIn
+			: 0;
+	}
+
+
+
+	/**
+	 * @return int
+	 */
+	public function getInclusiveMemory()
+	{
+		return ($this->memoryIn && $this->memoryOut)
+			? $this->memoryIn - $this->memoryOut
+			: 0;
+	}
+
+
+
+	/**
+	 * @return int
+	 */
+	public function getExclusiveMemory()
+	{
+		if (!$inclusive = $this->getInclusiveMemory()) {
+			return 0;
+		}
+
+		$childrenMemory = 0;
+		foreach ($this->children as $call) {
+			$childrenMemory += $call->getInclusiveMemory();
+		}
+
+		return $inclusive - $childrenMemory;
+	}
+
+
+
+	/**
+	 * @param \XdebugTrace\StackTrace $stack
+	 */
+	public function setStackTrace(StackTrace $stack)
+	{
+		$this->stack = $stack;
 	}
 
 

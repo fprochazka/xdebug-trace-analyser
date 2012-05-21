@@ -5,18 +5,18 @@ namespace XdebugTrace;
 use Nette\Diagnostics\Debugger;
 
 
-
 // initialize
 require_once __DIR__ . '/nette.min.php';
 Debugger::enable(FALSE, '/tmp');
 Debugger::$browser = trim(@exec('which google-chrome')) ?: NULL;
 Debugger::$strictMode = TRUE;
-require_once __DIR__ . '/utils/dump.php';
+require_once __DIR__ . '/utils/functions.php';
 
 $robot = new \Nette\Loaders\RobotLoader();
 $robot->addDirectory(__DIR__);
 $robot->setCacheStorage(new \Nette\Caching\Storages\MemoryStorage());
 $robot->register();
+
 
 // validate arguments
 if ($_SERVER['argc'] <= 1 || $_SERVER['argc'] > 2 ) {
@@ -30,17 +30,15 @@ if ($_SERVER['argc'] <= 1 || $_SERVER['argc'] > 2 ) {
 $trace = new TraceFile($fileName = $_SERVER['argv'][1]);
 $stackTrace = $trace->createStackTrace();
 
-//$dumper = new HtmlDumper($stackTrace);
-//$dumper->dump($htmlFile = str_replace('.xt', '.html', $fileName));
+$dumper = new HtmlDumper($stackTrace);
+$dumper->dump($htmlFile = str_replace('.xt', '.html', $fileName));
 
-// exec('`which google-chrome` ' . escapeshellarg($htmlFile));
+// preview
+if (file_exists($htmlFile)) {
+	exec('`which google-chrome` ' . escapeshellarg($htmlFile));
+}
 
 exit(0);
-
-//$o = new drXdebugTraceFileParser( $argv[1] );
-//$o->parse();
-//$functions = $o->getFunctions( $sortKey );
-
 
 // class drXdebugTraceFileParser
 // {

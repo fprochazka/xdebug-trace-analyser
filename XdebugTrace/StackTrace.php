@@ -27,6 +27,11 @@ class StackTrace extends Nette\Object implements \IteratorAggregate
 	 */
 	private $last;
 
+	/**
+	 * @var int
+	 */
+	private $lowestLevel;
+
 
 
 	/**
@@ -52,6 +57,7 @@ class StackTrace extends Nette\Object implements \IteratorAggregate
 
 		} else {
 			$this->registry[$call->id] = $call;
+			$call->setStackTrace($this);
 		}
 
 		if ($this->last && !$call->getParent()) {
@@ -72,7 +78,24 @@ class StackTrace extends Nette\Object implements \IteratorAggregate
 			$this->calls[] = $call;
 		}
 
+		$this->lowestLevel = NULL;
 		$this->last = $call;
+	}
+
+
+
+	/**
+	 * @return int
+	 */
+	public function getLowestLevel()
+	{
+		if ($this->lowestLevel !== NULL) {
+			return $this->lowestLevel;
+		}
+
+		return $this->lowestLevel = min(array_map(function ($call) {
+			return $call->level;
+		}, $this->calls));
 	}
 
 
