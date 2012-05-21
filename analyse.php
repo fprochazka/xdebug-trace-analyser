@@ -25,14 +25,14 @@ if ($_SERVER['argc'] <= 1 || $_SERVER['argc'] > 2 ) {
 	die();
 }
 
+
 // dance
 $trace = new TraceFile($fileName = $_SERVER['argv'][1]);
 $stackTrace = $trace->createStackTrace();
 
-//fd(iterator_to_array($stackTrace->getIterator()), 100);
-
-//$dumper = new HtmlDumper($trace);
+//$dumper = new HtmlDumper($stackTrace);
 //$dumper->dump($htmlFile = str_replace('.xt', '.html', $fileName));
+
 // exec('`which google-chrome` ' . escapeshellarg($htmlFile));
 
 exit(0);
