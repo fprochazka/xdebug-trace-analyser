@@ -78,11 +78,12 @@ class StackTrace extends Nette\Object implements \IteratorAggregate
 
 
 	/**
-	 * @return \ArrayIterator
+	 * @return \RecursiveIteratorIterator|\XdebugTrace\TraceCall[]
 	 */
 	public function getIterator()
 	{
-		return new \ArrayIterator($this->calls);
+		$iterator = new RecursiveCallIterator($this->calls);
+		return new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::SELF_FIRST);
 	}
 
 }

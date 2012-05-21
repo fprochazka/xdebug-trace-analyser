@@ -9,7 +9,7 @@ use Nette;
 /**
  * @author Filip Procházka <filip.prochazka@kdyby.org>
  */
-class TraceCall extends Nette\Object
+class TraceCall extends Nette\Object implements \IteratorAggregate
 {
 
 	const IN = 0;
@@ -144,6 +144,16 @@ class TraceCall extends Nette\Object
 	public function getChildren()
 	{
 		return $this->children;
+	}
+
+
+
+	/**
+	 * @return \XdebugTrace\RecursiveCallIterator|\XdebugTrace\TraceCall[]
+	 */
+	public function getIterator()
+	{
+		return new RecursiveCallIterator($this->children);
 	}
 
 }
