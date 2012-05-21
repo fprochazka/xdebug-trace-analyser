@@ -10,7 +10,16 @@ class progressbar extends console
 
 	private $escapeSequence = "\033[%sm";
 
-	private $text = '';
+	/**
+	 * @var string|callback
+	 */
+	private $prefix;
+
+	/**
+	 * @var string|callback
+	 */
+	private $suffix;
+
 	private $steps = 0;
 	private $delim = '';
 	private $step = 0;
@@ -18,11 +27,12 @@ class progressbar extends console
 
 
 
-	public function __construct($steps = 100, $text = '', $delim = '#', $maxchars = 70)
+	public function __construct($steps = 100, $prefix = NULL, $suffix = NULL, $delim = '#', $maxchars = 100)
 	{
 		$this->steps = abs($steps);
 		$this->step = 0;
-		$this->text = $text;
+		$this->prefix = $prefix;
+		$this->suffix = $suffix;
 		$this->delim = $delim;
 		$this->maxchars = $maxchars;
 		$this->draw();
@@ -44,26 +54,58 @@ class progressbar extends console
 
 
 
-	private function draw()
+	private function getPrefix()
 	{
-		print $this->text . ' [';
+		if (is_string($this->prefix)) {
+			return $this->prefix;
+
+		} elseif (is_callable($this->prefix)) {
+			$prefix = $this->prefix;
+			return $prefix();
+		}
+
+		return NULL;
+	}
+
+
+
+	private function getSuffix()
+	{
+		if (is_string($this->suffix)) {
+			return $this->suffix;
+
+		} elseif (is_callable($this->suffix)) {
+			$suffix = $this->suffix;
+			return $suffix();
+		}
+
+		return NULL;
+	}
+
+
+
+	public function draw($text = '')
+	{
+		print ($prefix = $this->getPrefix()) . ' [';
 
 		$proc = round(($this->step / $this->steps) * 100, 0);
 		$complete = $proc . '% complete';
-		//$complete = sprintf($this->afterText,
+		if ($suffix = $this->getSuffix()) {
+			$complete .= ' ' . $suffix;
+		}
 
-		$isuse = strlen($complete) + 4 + strlen($this->text);
+		$isuse = strlen($complete) + 4 + strlen($prefix);
 
 		$max = $this->maxchars - $isuse;
 
 		$dash = round($max * ($proc / 100) + 1);
 		$free = $max - $dash;
 
-		//print 'max:'.$max.' dash:'.$dash.' free:'.$free;
 		if ($dash > 0)
 			print str_repeat($this->delim, $dash);
 		if ($free > 0)
 			print str_repeat('-', $free);
+
 		print '] ' . $complete;
 	}
 
@@ -77,7 +119,7 @@ class progressbar extends console
 
 
 
-	private function toPos($column = 1)
+	public function toPos($row = 1, $column = 1)
 	{
 		echo "\033[{$column}G";
 	}
