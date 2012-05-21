@@ -30,7 +30,7 @@ class progressbar extends console
 
 
 
-	public function update($step = 0)
+	public function update($step = NULL)
 	{
 		if ($step) {
 			$this->step = $step;
