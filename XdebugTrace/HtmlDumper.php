@@ -117,10 +117,6 @@ class HtmlDumper extends Nette\Object
 	 */
 	public static function formatBytes($bytes, $precision = 2)
 	{
-		if ($bytes === 0) {
-			return '?';
-		}
-
 		$units = array('B', 'KB', 'MB', 'GB', 'TB');
 		$bytes = max($bytes, 0);
 		$pow = floor(($bytes ? log($bytes) : 0) / log(1024));
