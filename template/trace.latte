@@ -1,0 +1,265 @@
+<!doctype html>
+<html><head>
+    <title>Xdebug Trace</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+    <style type="text/css" class="nette">
+    body {
+        padding:0;
+        font: 9pt/1.5 Verdana, sans-serif;
+        background: white;
+        color: #333;
+        text-align: left;
+    }
+
+    body * {
+        font: inherit;
+        color: inherit;
+        background: transparent;
+        border: none;
+        margin: 0;
+        padding: 0;
+        text-align: inherit;
+        text-indent: 0;
+    }
+
+    b {
+        font-weight: bold;
+    }
+
+    i {
+        font-style: italic;
+    }
+
+    a {
+        text-decoration: none;
+        color: #328ADC;
+        padding: 2px 4px;
+        margin: -2px -4px;
+    }
+
+    a:hover, a:active, a:focus {
+        color: #085AA3;
+    }
+
+    a abbr {
+        font-family: sans-serif;
+        color: #BBB;
+    }
+
+    #traceIcon {
+        position: absolute;
+        right: .5em;
+        top: .5em;
+        z-index: 23179;
+        text-decoration: none;
+        background: #CD1818;
+        padding: 3px;
+    }
+
+    #traceError {
+        background: #CD1818;
+        color: white;
+        font: 13pt/1.5 Verdana, sans-serif !important;
+        display: block;
+    }
+
+    h1 {
+        font-size: 18pt;
+        font-weight: normal;
+        text-shadow: 1px 1px 0 rgba(0, 0, 0, .4);
+        margin: .7em 0;
+    }
+
+    h2 {
+        font: 14pt/1.5 sans-serif !important;
+        color: #888;
+        margin: .6em 0;
+    }
+
+    h3 {
+        font: bold 10pt/1.5 Verdana, sans-serif !important;
+        margin: 1em 0;
+        padding: 0;
+    }
+
+    p, pre {
+        margin: .8em 0
+    }
+
+    p.column-right {
+        text-align:right;
+        float:right;
+        width:140px;
+        margin:0 10px 0 0;
+        overflow: hidden;
+    }
+
+    p.column-small {
+        width:60px;
+    }
+
+    pre, code, table {
+        font: 9pt/1.5 Consolas, monospace !important;
+    }
+
+    pre, table {
+        background: #FDF5CE;
+        padding: .4em .7em;
+        border: 1px dotted silver;
+        overflow: auto;
+    }
+
+    pre div {
+        min-width: 100%;
+        float: left;
+        _float: none;
+        white-space: pre;
+    }
+
+    table pre {
+        padding: 0;
+        margin: 0;
+        border: none;
+    }
+
+    pre .php-array, pre .php-object {
+        color: #C22;
+    }
+
+    pre .php-string {
+        color: #080;
+    }
+
+    pre .php-int, pre .php-float, pre .php-null, pre .php-bool {
+        color: #328ADC;
+    }
+
+    pre .php-visibility {
+        font-size: 85%;
+        color: #998;
+    }
+
+    pre.nette-dump a {
+        color: #333;
+    }
+
+    div.panel {
+        padding: 1px 25px;
+    }
+
+    div.inner {
+        background: #F4F3F1;
+        padding: .1em 1em 1em;
+        border-radius: 8px;
+        -moz-border-radius: 8px;
+        -webkit-border-radius: 8px;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .outer {
+        overflow: auto;
+    }
+
+    td, th {
+        vertical-align: top;
+        text-align: left;
+        padding: 2px 6px;
+        border: 1px solid #e6dfbf;
+    }
+
+    th {
+        font-weight: bold;
+    }
+
+    tr > :first-child {
+        width: 20%;
+    }
+
+    tr:nth-child(2n), tr:nth-child(2n) pre {
+        background-color: #F7F0CB;
+    }
+
+    ol {
+        margin: 1em 0;
+        padding-left: 2.5em;
+    }
+
+    ul {
+        font: 7pt/1.5 Verdana, sans-serif !important;
+        padding: 2em 4em;
+        margin: 1em 0 0;
+        color: #777;
+        background: #F6F5F3 url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFEAAAAjCAMAAADbuxbOAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAADBQTFRF/fz24d7Y7Onj5uLd9vPu3drUzMvG09LN39zW8e7o2NbQ3NnT29jS0M7J1tXQAAAApvmsFgAAABB0Uk5T////////////////////AOAjXRkAAAKlSURBVHja7FbbsqQgDAwENEgc//9vN+SCWDtbtXPmZR/Wc6o02mlC58LA9ckFAOszvMV8xNgyUjyXhojfMVKvRL0ZHavxXYy5JrmchMdzou8YlTClxajtK8ZGGpWRoBr1+gFjKfHkJPbizabLgzE3pH7Iu4K980xgFvlrVzMZoVBWhtvouCDdcTDmTgMCJdVxJ9MKO6XxnliM7hxi5lbj2ZVM4l8DqYyKoNLYcfqBB1/LpHYxEcfVG6ZpMDgyFUVWY/Q1sSYPpIdSAKWqLWL0XqWiMWc4hpH0OQOMOAgdycY4N9Sb7wWANQs3rsDSdLAYiuxi5siVfOhBWIrtH0G3kNaF/8Q4kCPE1kMucG/ZMUBUCOgiKJkPuWWTLGVgLGpwns1DraUayCtoBqERyaYtVsm85NActRooezvSLO/sKZP/nq8n4+xcyjNsRu8zW6KWpdb7wjiQd4WrtFZYFiKHENSmWp6xshh96c2RQ+c7Lt+qbijyEjHWUJ/pZsy8MGIUuzNiPySK2Gqoh6ZTRF6ko6q3nVTkaA//itIrDpW6l3SLo8juOmqMXkYknu5FdQxWbhCfKHEGDhxxyTVaXJF3ZjSl3jMksjSOOKmne9pI+mcG5QvaUJhI9HpkmRo2NpCrDJvsktRhRE2MM6F2n7dt4OaMUq8bCctk0+PoMRzL+1l5PZ2eyM/Owr86gf8z/tOM53lom5+nVcFuB+eJVzlXwAYy9TZ9s537tfqcsJWbEU4nBngZo6FfO9T9CdhfBtmk2dLiAy8uS4zwOpMx2HqYbTC+amNeAYTpsP4SIgvWfUBWXxn3CMHW3ffd7k3+YIkx7w0t/CVGvcPejoeOlzOWzeGbawOHqXQGUTMZRcfj4XPCgW9y/fuvVn8zD9P1QHzv80uAAQA0i3Jer7Jr7gAAAABJRU5ErkJggg==') 99% 10px no-repeat;
+        border-top: 1px solid #DDD;
+    }
+
+    .highlight {
+        background: #CD1818;
+        color: white;
+        font-weight: bold;
+        font-style: normal;
+        display: block;
+        padding: 0 .4em;
+        margin: 0 -.4em;
+    }
+
+    .line {
+        color: #9F9C7F;
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    a[href^=editor\:] {
+        color: inherit;
+        border-bottom: 1px dotted #C1D2E1;
+    }
+
+    .timeFast {
+        color: green;
+    }
+
+    .timeMedian {
+        color: orange;
+    }
+
+    .timeSlow {
+        color: red;
+    </style>
+</head><body>
+
+<div class="panel">
+    <h2><a href="javascript:;">Trace call <abbr>&#x25bc;</abbr></a></h2>
+
+    <div class="inner">
+        <ol n:inner-foreach="$trace as $call">
+            <li n:if="$call->function" style="margin-left:{$call|callOffset}px">
+                <p class="column-right column-small {$call->inclusiveTime|timeClass}">
+                    {$call->inclusiveTime|formatTime}
+                </p>
+                <p class="column-right">
+                    excl. {$call->exclusiveMemory|formatBytes}
+                </p>
+                <p class="column-right">
+                    incl. {$call->inclusiveMemory|formatBytes}
+                </p>
+                <p>
+                    {if is_file($call->file)}
+                        {$call|callFile} {$call->evalInfo}
+                        <a href="javascript:;" rel="traceSrc{$call->id}">source <abbr>&#x25ba;</abbr></a>&nbsp;
+                    {else}
+                        <i>inner-code</i>{if $call->line}:{$call->line}{/if}
+                    {/if}
+
+                    {$call->function}()
+                </p>
+            </li>
+        </ol>
+    </div>
+</div>
+
+</body></html>
