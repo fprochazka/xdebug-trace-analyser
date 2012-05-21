@@ -76,14 +76,22 @@ class TraceFile extends Nette\Object
 			$call = new TraceCall($id, $level, $time, $memory, (int)$direction);
 
 			if ((int)$direction === TraceCall::IN && count($line) === 10) {
-				list(,,,,, $call->function, $call->internalFunction, $call->includedFile, $call->file, $call->line) = $line;
-				$call->internalFunction = ($call->internalFunction === "0");
+				list(,,,,, $call->function, $call->internal, $call->includedFile, $call->file, $call->line) = $line;
+				$call->internal = ($call->internal === "0");
 
 				if (strcmp(substr($call->file, -13), "eval()'d code") === 0) {
-					preg_match('/(.*)\(([0-9]+)\) : eval\(\)\'d code$/', $call->file, $match);
-					$call->evalInfo = "- eval()'d code ($call->line)";
-					$call->file = $match[1];
-					$call->line = $match[2];
+					if ($evald = Strings::match($call->file, '~(?P<file>.*)\((?P<line>[0-9]+)\) : eval\(\)\'d code$~')) {
+						$call->evalInfo = "- eval()'d code ($call->line)";
+						$call->file = $evald['file'];
+						$call->line = $evald['line'];
+					}
+				}
+
+				if (strpos($call->function, '{closure:') === 0) {
+					if ($evald = Strings::match($call->function, '~^{closure:(.*):([0-9]+)~')) {
+						$call->function = '{closure}';
+					}
+					// {closure:/db.php:50-50}
 				}
 			}
 

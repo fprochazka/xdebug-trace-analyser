@@ -111,6 +111,35 @@ class HtmlDumper extends Nette\Object
 
 
 	/**
+	 * @param TraceCall $call
+	 * @return array
+	 */
+	public static function stackClasses(TraceCall $call)
+	{
+		$classes = array();
+		while ($call = $call->getParent()) { // intentional skip of self
+			$classes[] = 'stack-' . $call->id;
+		}
+
+		return implode(' ', $classes);
+	}
+
+
+
+	/**
+	 * @param TraceCall $call
+	 * @return string
+	 */
+	public static function highlightFile(TraceCall $call)
+	{
+		if (is_file($call->file)) {
+			return @Nette\Diagnostics\BlueScreen::highlightFile($call->file, $call->line, 6);
+		}
+	}
+
+
+
+	/**
 	 * @param integer $bytes
 	 * @param int $precision
 	 * @return string

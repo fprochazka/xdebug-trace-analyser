@@ -219,6 +219,25 @@
         border-bottom: 1px dotted #C1D2E1;
     }
 
+    .hide-button, .hide-arrow {
+        font-weight: bold;
+        color: black;
+        text-decoration: none;
+        text-shadow: 0 1px 0 white;
+    }
+
+    .hide-button.hide-button-clicked {
+        color: red;
+    }
+
+    .hide-button:hover, .hide-arrow:hover {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+        opacity: 0.4;
+        filter: alpha(opacity = 40);
+    }
+
     .timeFast {
         color: green;
     }
@@ -229,34 +248,83 @@
 
     .timeSlow {
         color: red;
+    }
+
+    .hidden {
+        display:none;
+    }
     </style>
+    <script>
+        $(document).ready(function () {
+            $('body').on('click', '[data-hide]', function () {
+                var toggle = function (toggler, target) {
+                    if (toggler.data('toggle-status') === 'hidden') {
+                        target.find('.hide-button abbr').html('&#x25bc;'); // fix arrows
+                        target.show(); // show
+
+                        toggler.data('toggle-status', 'displayed');
+                        toggler.removeClass('hide-button-clicked');
+                        toggler.find('abbr').html('&#x25bc;');
+
+                    } else {
+                        target.hide(); // hide
+                        toggler.data('toggle-status', 'hidden');
+                        toggler.addClass('hide-button-clicked');
+                        toggler.find('abbr').html('&#x25ba;');
+                    }
+                }
+
+                var toggler = $(this),
+                    targetId = $('#' + toggler.data('hide'));
+
+                if (targetId.length) {
+                    toggle(toggler, targetId);
+
+                } else {
+                    toggle(toggler, $('.' + toggler.data('hide')));
+                }
+            });
+        });
+    </script>
 </head><body>
 
 <div class="panel">
-    <h2><a href="javascript:;">Trace call <abbr>&#x25bc;</abbr></a></h2>
+    <h2>
+        <p class="column-right">
+            <a href="javascript:;" data-hide="internal-function" class="hide-button">× internals</a>
+        </p>
+
+        <a href="javascript:;">Trace call <abbr>&#x25bc;</abbr></a>
+    </h2>
 
     <div class="inner">
         <ol n:inner-foreach="$trace as $call">
-            <li n:if="$call->function" style="margin-left:{$call|callOffset}px">
+            <li n:if="$call->function" style="margin-left:{$call|callOffset}px" n:class="$call->internal? internal-function, $template->stackClasses($call)" rel="{$call->function}">
                 <p class="column-right column-small {$call->inclusiveTime|timeClass}">
                     {$call->inclusiveTime|formatTime}
                 </p>
                 <p class="column-right">
-                    excl. {$call->exclusiveMemory|formatBytes}
+                    {$call->exclusiveMemory|formatBytes} excl.
                 </p>
                 <p class="column-right">
-                    incl. {$call->inclusiveMemory|formatBytes}
+                    {$call->inclusiveMemory|formatBytes} incl.
                 </p>
                 <p>
+                    <a href="javascript:;" data-hide="stack-{$call->id}" class="hide-button"><abbr>&#x25bc;</abbr> &nbsp;</a>
+
                     {if is_file($call->file)}
                         {$call|callFile} {$call->evalInfo}
-                        <a href="javascript:;" rel="traceSrc{$call->id}">source <abbr>&#x25ba;</abbr></a>&nbsp;
+                        <a href="javascript:;" data-hide="call-source-{$call->id}">source <abbr>&#x25ba;</abbr></a>&nbsp;
                     {else}
                         <i>inner-code</i>{if $call->line}:{$call->line}{/if}
                     {/if}
 
                     {$call->function}()
                 </p>
+
+                <div n:if="is_file($call->file)" id="call-source-{$call->id}" class="hidden">
+                    {!$call|highlightFile}
+                </div>
             </li>
         </ol>
     </div>

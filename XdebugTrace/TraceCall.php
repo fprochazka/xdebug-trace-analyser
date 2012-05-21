@@ -53,7 +53,7 @@ class TraceCall extends Nette\Object implements \IteratorAggregate
 	/**
 	 * @var bool
 	 */
-	public $internalFunction = FALSE;
+	public $internal = FALSE;
 
 	/**
 	 * @var string
